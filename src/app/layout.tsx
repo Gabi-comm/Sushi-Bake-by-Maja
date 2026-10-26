@@ -1,6 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Manrope } from "next/font/google";
 import { BUSINESS, FLAVORS } from "@/data/menu";
+import { THEME_COLOR, THEME_SCRIPT } from "@/lib/theme-shared";
+import Footer from "@/components/Footer";
+import Nav from "@/components/Nav";
+import PwaRegister from "@/components/PwaRegister";
+import SmoothScroll from "@/components/SmoothScroll";
 import "./globals.css";
 
 const instrument = Instrument_Serif({
@@ -16,9 +21,11 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
+  applicationName: "Sushi Bake by Maja",
+  appleWebApp: { capable: true, title: "Sushi Bake", statusBarStyle: "black-translucent" },
   // Set NEXT_PUBLIC_SITE_URL to the real domain on deploy so OG image URLs resolve.
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: "Sushi Bake by Maja — Baked sushi trays in Makati",
+  title: { default: "Sushi Bake by Maja — Baked sushi trays in Makati", template: "%s · Sushi Bake by Maja" },
   description:
     "Creamy Kani, Cheesy Spam, California Maki and Spicy Tuna sushi bake trays, made in Makati. Delivery or pick-up, nori included. Order on GrabFood or Messenger.",
   openGraph: {
@@ -30,7 +37,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#14110f",
+  themeColor: THEME_COLOR.light,
+  viewportFit: "cover",
 };
 
 const jsonLd = {
@@ -60,9 +68,17 @@ const jsonLd = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${instrument.variable} ${manrope.variable}`}>
+    // The head script may set data-theme before hydration, hence the warning opt-out.
+    <html lang="en" className={`${instrument.variable} ${manrope.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
+        <SmoothScroll />
+        <Nav />
         {children}
+        <Footer />
+        <PwaRegister />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </body>
     </html>

@@ -1,4 +1,4 @@
-import { BUSINESS, EXTRAS, QUAD, flavorById, peso, sizeById, type FlavorId, type SizeId } from "@/data/menu";
+import { BUSINESS, EXTRAS, FLAVORS, QUAD, SIZES, flavorById, peso, sizeById, type FlavorId, type SizeId } from "@/data/menu";
 
 export type LineItem = {
   size: SizeId;
@@ -67,4 +67,15 @@ export function orderMessage(items: LineItem[]): string {
 
 export function messengerLink(items: LineItem[]): string {
   return `${BUSINESS.messenger}?text=${encodeURIComponent(orderMessage(items))}`;
+}
+
+/** Where the builder starts, e.g. from an "Add to my tray" link. */
+export type BuilderStart = { size: SizeId; flavor?: FlavorId };
+
+/** Reads ?size= / ?flavor= values, ignoring anything that isn't on the menu. */
+export function parseStart(size: string | null, flavor: string | null): BuilderStart {
+  const s = SIZES.find((x) => x.id === size)?.id;
+  const f = FLAVORS.find((x) => x.id === flavor)?.id;
+  // The Quad already has all four flavors, so a flavor choice doesn't apply.
+  return { size: s ?? "large", flavor: s === "quad" ? undefined : f };
 }

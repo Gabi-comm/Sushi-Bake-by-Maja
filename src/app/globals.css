@@ -1,6 +1,33 @@
 @import "tailwindcss";
 
+/*
+ * Roles, named after the food: nori = page canvas, nori-2/3 = raised surfaces,
+ * rice = ink, orange = accent, on-accent = ink placed on an accent fill.
+ * Orange (light) is the default; data-theme="dark" restores the nori look.
+ * Paper/ink stay fixed in both themes (receipt-style blocks like the reviews).
+ */
 :root {
+  --nori: #e8631a;
+  --nori-2: #db5813;
+  --nori-3: #cc4f0e;
+  --rice: #1a0f08;
+  --rice-dim: #3f1b08;
+  --orange: #fff1df;
+  --orange-deep: #f5dcc0;
+  --on-accent: #1a0d05;
+  --mango: #ffc94a;
+  --sriracha: #9e1d12;
+  --line: rgb(26 15 8 / 0.18);
+  --glass: rgb(255 241 223 / 0.18);
+  --glow: 255 214 160;
+  --paper: #fbf3e7;
+  --ink: #1a120c;
+  --curtain: #14110f;
+  --curtain-ink: #f6efe4;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
   --nori: #14110f;
   --nori-2: #1d1916;
   --nori-3: #2a2420;
@@ -8,9 +35,13 @@
   --rice-dim: #b9ad9c;
   --orange: #e8631a;
   --orange-deep: #c94f0f;
-  --mango: #ffc94a;
   --sriracha: #d6382a;
   --line: rgb(246 239 228 / 0.12);
+  --glass: rgb(29 25 22 / 0.6);
+  --glow: 232 99 26;
+  --curtain: #e8631a;
+  --curtain-ink: #14110f;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -21,6 +52,9 @@
   --color-rice-dim: var(--rice-dim);
   --color-orange: var(--orange);
   --color-orange-deep: var(--orange-deep);
+  --color-on-accent: var(--on-accent);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
   --color-mango: var(--mango);
   --color-sriracha: var(--sriracha);
   --color-line: var(--line);
@@ -30,7 +64,6 @@
 
 html {
   background: var(--nori);
-  color-scheme: dark;
 }
 
 html.lenis,
@@ -44,6 +77,7 @@ html.lenis body {
 body {
   background: var(--nori);
   color: var(--rice);
+  transition: background-color 0.5s, color 0.5s;
   font-family: var(--font-manrope), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
@@ -51,7 +85,7 @@ body {
 
 ::selection {
   background: var(--orange);
-  color: var(--nori);
+  color: var(--on-accent);
 }
 
 /* Film grain over everything, keeps the dark canvas from feeling flat. */
@@ -65,60 +99,63 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-.display {
-  font-family: var(--font-instrument), Georgia, serif;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  line-height: 0.88;
-}
+/* Component classes live in a layer so Tailwind utilities (hidden, bg-*, …) can override them. */
+@layer components {
+  .display {
+    font-family: var(--font-instrument), Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 0.88;
+  }
 
-.eyebrow {
-  font-size: 0.72rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--rice-dim);
-}
+  .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rice-dim);
+  }
 
-.pill {
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  backdrop-filter: blur(10px);
-  background: rgb(29 25 22 / 0.6);
-}
+  .pill {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    backdrop-filter: blur(10px);
+    background: var(--glass);
+  }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  border-radius: 999px;
-  padding: 0.85rem 1.35rem;
-  font-weight: 700;
-  font-size: 0.92rem;
-  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.25s, box-shadow 0.25s;
-}
-.btn:hover {
-  transform: translateY(-2px);
-}
-.btn:focus-visible,
-button:focus-visible,
-a:focus-visible {
-  outline: 2px solid var(--mango);
-  outline-offset: 3px;
-}
-.btn-orange {
-  background: var(--orange);
-  color: #1a0d05;
-  box-shadow: 0 10px 30px -10px rgb(232 99 26 / 0.8);
-}
-.btn-orange:hover {
-  background: #ff7a2e;
-}
-.btn-ghost {
-  border: 1px solid var(--line);
-  color: var(--rice);
-}
-.btn-ghost:hover {
-  background: rgb(246 239 228 / 0.06);
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    border-radius: 999px;
+    padding: 0.85rem 1.35rem;
+    font-weight: 700;
+    font-size: 0.92rem;
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.25s, box-shadow 0.25s;
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+  }
+  .btn:focus-visible,
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--rice);
+    outline-offset: 3px;
+  }
+  .btn-orange {
+    background: var(--orange);
+    color: var(--on-accent);
+    box-shadow: 0 10px 30px -10px rgb(var(--glow) / 0.8);
+  }
+  .btn-orange:hover {
+    background: var(--orange-deep);
+  }
+  .btn-ghost {
+    border: 1px solid var(--line);
+    color: var(--rice);
+  }
+  .btn-ghost:hover {
+    background: var(--glass);
+  }
 }
 
 /* Reveal-on-scroll (driven by the Reveal component). */
@@ -163,6 +200,11 @@ a:focus-visible {
   from {
     opacity: 0;
     transform: translateY(18px);
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 @keyframes draw {

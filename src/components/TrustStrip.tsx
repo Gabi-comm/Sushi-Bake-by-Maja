@@ -3,7 +3,7 @@ const ITEMS = ["Delivery or pick-up", "Callisto Tower 2, Makati", "Generous topp
 export default function TrustStrip() {
   const row = [...ITEMS, ...ITEMS];
   return (
-    <div className="relative overflow-hidden border-y border-line bg-orange py-4 text-nori" aria-label="Why Sushi Bake by Maja">
+    <div className="relative overflow-hidden border-y border-line bg-orange py-4 text-on-accent" aria-label="Why Sushi Bake by Maja">
       <ul className="flex w-max animate-[marquee_32s_linear_infinite] gap-10 whitespace-nowrap">
         {row.map((t, i) => (
           <li key={i} aria-hidden={i >= ITEMS.length} className="flex items-center gap-10 text-sm font-extrabold uppercase tracking-[0.2em]">

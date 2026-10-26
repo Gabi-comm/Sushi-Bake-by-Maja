@@ -2,9 +2,9 @@
 
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { FLAVORS, QUAD, SIZES, peso, type SizeId } from "@/data/menu";
-import { presetBuilder } from "@/lib/events";
 import { useWebGL } from "@/lib/webgl";
 import Reveal from "./Reveal";
 import { Arrow } from "./Nav";
@@ -106,9 +106,9 @@ export default function Sizes() {
         </div>
 
         <div className="mt-8 flex justify-center">
-          <button type="button" onClick={() => presetBuilder({ size: selected })} className="btn btn-orange">
+          <Link href={`/order?size=${selected}`} className="btn btn-orange">
             Build a {size.name} tray <Arrow />
-          </button>
+          </Link>
         </div>
       </div>
     </section>

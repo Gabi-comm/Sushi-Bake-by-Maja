@@ -1,12 +1,14 @@
 "use client";
 
-import { Suspense, useMemo, useRef } from "react";
+import { Suspense, useRef } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { ContactShadows, Environment, Html, Lightformer, Line, useTexture } from "@react-three/drei";
+import { ContactShadows, Environment, Html, Lightformer, Line } from "@react-three/drei";
 import { SIZES, type SizeId } from "@/data/menu";
+import { useTheme } from "@/lib/theme";
+import Filling from "./Filling";
 import Tray from "./Tray";
-import { FLOOR_LIFT, getRiceTexture, innerAt, slabGeometry, trayDims, type TrayDims } from "./geometry";
+import { trayDims, type TrayDims } from "./geometry";
 
 const GAP = 0.32;
 const FILL: Record<SizeId, string> = {
@@ -29,46 +31,19 @@ const LAYOUT = (() => {
   return out.map((o) => ({ ...o, x: o.x - shift }));
 })();
 
-/** Baked filling seen from outside: photo top, rice on the sides. */
-function Filling({ dims, texture }: { dims: TrayDims; texture: string }) {
-  const tex = useTexture(texture, (t) => {
-    t.colorSpace = THREE.SRGBColorSpace;
-  });
-  const { body, crust, rice, top } = useMemo(() => {
-    // Rice body sized to the floor, then a thin baked top sized to where it sits up the flared wall.
-    const D = dims.depth;
-    const base = innerAt(dims, FLOOR_LIFT);
-    const body = slabGeometry(base.length, base.width, D * 0.74, 0.06 * dims.width);
-    body.translate(0, FLOOR_LIFT * D, 0);
-    const lip = innerAt(dims, 0.76);
-    const crust = slabGeometry(lip.length, lip.width, D * 0.08, 0.07 * dims.width);
-    crust.translate(0, (FLOOR_LIFT + 0.74) * D, 0);
-    return {
-      body,
-      crust,
-      rice: new THREE.MeshStandardMaterial({ map: getRiceTexture(), roughness: 0.85 }),
-      top: new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6 }),
-    };
-  }, [dims, tex]);
-  return (
-    <>
-      <mesh geometry={body} material={rice} castShadow receiveShadow />
-      <mesh geometry={crust} material={[top, rice]} castShadow receiveShadow />
-    </>
-  );
-}
-
 function Dimension({ dims, visible }: { dims: TrayDims; visible: number }) {
   const y = 0.004;
   const l = dims.length / 2;
   const w = dims.width / 2;
   const off = 0.09;
   const ref = useRef<THREE.Group>(null);
+  const theme = useTheme();
   useFrame(() => {
     if (!ref.current) return;
     ref.current.scale.setScalar(THREE.MathUtils.lerp(ref.current.scale.x, visible ? 1 : 0.0001, 0.12));
   });
-  const color = "#e8631a";
+  // Accent per theme: orange lines on nori, ink lines on the orange page.
+  const color = theme === "dark" ? "#e8631a" : "#1a0f08";
   return (
     <group ref={ref}>
       <Line points={[[-l, y, w + off], [l, y, w + off]]} color={color} lineWidth={1.5} />
@@ -109,16 +84,16 @@ function Trays({ selected, onSelect }: { selected: SizeId; onSelect: (id: SizeId
               onPointerOut={() => (document.body.style.cursor = "")}
             >
               <Tray dims={t.dims} />
-              <Filling dims={t.dims} texture={FILL[t.id]} />
+              <Filling dims={t.dims} textures={[FILL[t.id]]} />
             </group>
             <Dimension dims={t.dims} visible={on ? 1 : 0} />
             {on && (
               <>
                 <Html position={[0, 0, t.dims.width / 2 + 0.2]} center zIndexRange={[20, 0]} style={{ pointerEvents: "none" }}>
-                  <span className="whitespace-nowrap rounded-full bg-orange px-2.5 py-1 text-[0.7rem] font-bold text-nori">{size.inches.length}″</span>
+                  <span className="whitespace-nowrap rounded-full bg-orange px-2.5 py-1 text-[0.7rem] font-bold text-on-accent">{size.inches.length}″</span>
                 </Html>
                 <Html position={[t.dims.length / 2 + 0.2, 0, 0]} center zIndexRange={[20, 0]} style={{ pointerEvents: "none" }}>
-                  <span className="whitespace-nowrap rounded-full bg-orange px-2.5 py-1 text-[0.7rem] font-bold text-nori">{size.inches.width}″</span>
+                  <span className="whitespace-nowrap rounded-full bg-orange px-2.5 py-1 text-[0.7rem] font-bold text-on-accent">{size.inches.width}″</span>
                 </Html>
               </>
             )}

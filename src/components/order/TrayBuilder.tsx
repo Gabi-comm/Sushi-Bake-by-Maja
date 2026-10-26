@@ -1,10 +1,11 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BUSINESS, EXTRAS, FLAVORS, QUAD, SIZES, flavorById, peso, sizeById, type FlavorId, type SizeId } from "@/data/menu";
-import { describe, lineTotal, messengerLink, noriCount, orderMessage, orderTotal, type LineItem } from "@/lib/order";
-import { onBuilderPreset } from "@/lib/events";
+import { describe, lineTotal, messengerLink, noriCount, orderMessage, orderTotal, type BuilderStart, type LineItem } from "@/lib/order";
+import { useWebGL } from "@/lib/webgl";
 import Reveal from "../Reveal";
 import { Arrow } from "../Nav";
 
@@ -38,41 +39,56 @@ function Stepper({ label, value, min, onChange }: { label: string; value: number
   );
 }
 
-/** The chosen tray: real photo cut-outs, split down the middle for two flavors, scaled to size. */
+const BuilderScene = dynamic(() => import("../three/BuilderScene"), { ssr: false });
+
+/** Flat top-down fallback for phones without WebGL: the baked tops, split down the middle. */
+function FlatTray({ size, flavors }: { size: SizeId; flavors: FlavorId[] }) {
+  const s = sizeById(size);
+  const tops = size === "quad" ? ["/tex/quad.webp"] : flavors.map((id) => `/tex/${id}.webp`);
+  return (
+    <div
+      className="relative overflow-hidden rounded-[14%/18%] border-[6px] border-[#d9dce1] shadow-[0_30px_50px_-20px_rgba(0,0,0,0.6)]"
+      style={{ width: `${40 + (s.inches.length / 14) * 45}%`, aspectRatio: `${s.inches.length} / ${s.inches.width}` }}
+    >
+      {tops.map((src, i) => (
+        <Image
+          key={src}
+          src={src}
+          alt=""
+          fill
+          sizes="40vw"
+          className="object-cover"
+          style={tops.length === 2 ? { clipPath: i === 0 ? "inset(0 50% 0 0)" : "inset(0 0 0 50%)" } : undefined}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** The chosen tray in 3D (same foil model and true scale as the size lineup). */
 function Preview({ size, flavors }: { size: SizeId; flavors: FlavorId[] }) {
   const s = sizeById(size);
-  const scale = 0.55 + (s.inches.length / 14) * 0.45;
-  const images = size === "quad" ? ["/img/trays/quad.webp"] : flavors.map((id) => `/img/trays/${id}.webp`);
+  const webgl = useWebGL();
   return (
     <div className="relative grid aspect-[4/3] place-items-center">
-      <div
-        aria-hidden
-        className="absolute inset-[12%] rounded-full opacity-70 blur-3xl"
-        style={{ background: "radial-gradient(circle, rgb(232 99 26 / 0.45), transparent 70%)" }}
-      />
-      <div className="relative aspect-square w-[70%] transition-transform duration-700 ease-[cubic-bezier(.2,.8,.2,1)]" style={{ transform: `scale(${scale})` }}>
-        {images.map((src, i) => (
-          <Image
-            key={src}
-            src={src}
-            alt=""
-            fill
-            sizes="(min-width: 768px) 40vw, 90vw"
-            className="object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,0.6)] transition-all duration-500"
-            style={images.length === 2 ? { clipPath: i === 0 ? "polygon(0 0, 52% 0, 48% 100%, 0 100%)" : "polygon(52% 0, 100% 0, 100% 100%, 48% 100%)" } : undefined}
-          />
-        ))}
-      </div>
-      <p className="absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-line bg-nori/80 px-3 py-1 text-xs text-rice/80 backdrop-blur">
+      <div aria-hidden className="absolute inset-[10%] rounded-full opacity-70 blur-3xl" style={{ background: "radial-gradient(circle, rgb(var(--glow) / 0.45), transparent 70%)" }} />
+      {webgl ? (
+        <div className="absolute inset-0 cursor-grab active:cursor-grabbing">
+          <BuilderScene size={size} flavors={flavors} />
+        </div>
+      ) : (
+        <FlatTray size={size} flavors={flavors} />
+      )}
+      <p className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-line bg-nori/80 px-3 py-1 text-xs text-rice/80 backdrop-blur">
         {s.name} · {s.inches.length}×{s.inches.width} in · {s.pax} pax
       </p>
     </div>
   );
 }
 
-export default function TrayBuilder() {
-  const [size, setSize] = useState<SizeId>("large");
-  const [flavors, setFlavors] = useState<FlavorId[]>(["california-maki"]);
+export default function TrayBuilder({ start = { size: "large" } }: { start?: BuilderStart }) {
+  const [size, setSize] = useState<SizeId>(start.size);
+  const [flavors, setFlavors] = useState<FlavorId[]>([start.flavor ?? "california-maki"]);
   const [split, setSplit] = useState(false);
   const [extraNori, setExtraNori] = useState(0);
   const [qty, setQty] = useState(1);
@@ -90,24 +106,6 @@ export default function TrayBuilder() {
       setFlavors((f) => f.slice(0, 1));
     }
   };
-
-  useEffect(
-    () =>
-      onBuilderPreset((p) => {
-        if (p.flavor) {
-          setFlavors([p.flavor]);
-          setSplit(false);
-          setSize((s) => p.size ?? (s === "quad" ? "large" : s));
-        } else if (p.size) {
-          setSize(p.size);
-          if (!sizeById(p.size).splitAllowed) {
-            setSplit(false);
-            setFlavors((f) => f.slice(0, 1));
-          }
-        }
-      }),
-    [],
-  );
 
   const toggleFlavor = (id: FlavorId) => {
     setFlavors((cur) => {
@@ -141,15 +139,15 @@ export default function TrayBuilder() {
   };
 
   return (
-    <section id="build" className="relative py-24 md:py-32" aria-labelledby="build-title">
+    <section id="build" className="relative pb-24 pt-32 md:pb-32 md:pt-40" aria-labelledby="build-title">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
         <Reveal>
           <p className="eyebrow mb-4 flex items-center gap-2">
             <span className="text-orange">+</span> Build your tray
           </p>
-          <h2 id="build-title" className="display max-w-5xl text-balance text-[clamp(3rem,7vw,6rem)]">
+          <h1 id="build-title" className="display max-w-5xl text-balance text-[clamp(3rem,7vw,6rem)]">
             Make it <span className="italic text-orange">yours</span>, then send it.
-          </h2>
+          </h1>
         </Reveal>
 
         <div className="mt-12 grid gap-8 lg:grid-cols-[1.05fr_1fr]">
@@ -219,7 +217,7 @@ export default function TrayBuilder() {
                         </span>
                         <span className="min-w-0">
                           <span className="block font-semibold">
-                            {f.name} {f.bestSeller && <span className="ml-1 rounded bg-mango px-1.5 py-0.5 text-[0.6rem] font-extrabold uppercase text-nori">Best</span>}
+                            {f.name} {f.bestSeller && <span className="ml-1 rounded bg-mango px-1.5 py-0.5 text-[0.6rem] font-extrabold uppercase text-on-accent">Best</span>}
                           </span>
                           <span className="text-xs text-rice-dim">{peso(f.prices[size as Exclude<SizeId, "quad">])}</span>
                         </span>
@@ -274,7 +272,7 @@ export default function TrayBuilder() {
 
             <div className="mt-5 flex items-baseline justify-between">
               <p className="eyebrow">{cart.length ? "Order total" : "Total"}</p>
-              <p className="display text-4xl text-mango">{peso(total)}</p>
+              <p className="display text-4xl text-orange">{peso(total)}</p>
             </div>
 
             <div className="mt-5 grid gap-2 sm:grid-cols-2">

@@ -1,5 +1,5 @@
 import { describe as group, expect, it } from "vitest";
-import { OrderError, describe, lineTotal, messengerLink, noriCount, orderMessage, orderTotal, trayPrice } from "./order";
+import { OrderError, describe, lineTotal, messengerLink, noriCount, orderMessage, orderTotal, parseStart, trayPrice } from "./order";
 
 group("trayPrice", () => {
   it("uses the menu-card price for a single flavor", () => {
@@ -55,5 +55,20 @@ group("nori and messages", () => {
     const link = messengerLink(items);
     expect(link.startsWith("https://m.me/61591539816333?text=")).toBe(true);
     expect(decodeURIComponent(link.split("?text=")[1])).toBe(orderMessage(items));
+  });
+});
+
+group("parseStart", () => {
+  it("preselects a known size and flavor", () => {
+    expect(parseStart("family", "spicy-tuna")).toEqual({ size: "family", flavor: "spicy-tuna" });
+  });
+
+  it("defaults to Large and drops unknown values", () => {
+    expect(parseStart(null, "creamy-kani")).toEqual({ size: "large", flavor: "creamy-kani" });
+    expect(parseStart("huge", "pizza")).toEqual({ size: "large", flavor: undefined });
+  });
+
+  it("ignores a flavor on the Quad", () => {
+    expect(parseStart("quad", "cheesy-spam")).toEqual({ size: "quad", flavor: undefined });
   });
 });

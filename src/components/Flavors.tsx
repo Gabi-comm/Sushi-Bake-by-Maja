@@ -2,11 +2,11 @@
 
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { FLAVORS, QUAD, flavorById, peso, type FlavorId } from "@/data/menu";
-import { presetBuilder } from "@/lib/events";
 import { useWebGL } from "@/lib/webgl";
 import { smoothstep } from "./three/geometry";
 import type { SceneItem } from "./three/LayerScene";
@@ -100,7 +100,7 @@ export default function Flavors() {
         <div
           aria-hidden
           className="pointer-events-none absolute right-[-10%] top-1/2 -z-0 aspect-square w-[min(110vw,1000px)] -translate-y-1/2 rounded-full opacity-60 blur-3xl"
-          style={{ background: "radial-gradient(circle, rgb(232 99 26 / 0.35), transparent 65%)" }}
+          style={{ background: "radial-gradient(circle, rgb(var(--glow) / 0.35), transparent 65%)" }}
         />
 
         {/* 3D */}
@@ -128,7 +128,7 @@ export default function Flavors() {
                   aria-selected={i === index}
                   onClick={() => jumpTo(i)}
                   className={`rounded-full border px-3.5 py-1.5 text-[0.78rem] font-semibold transition ${
-                    i === index ? "border-orange bg-orange text-nori" : "border-line text-rice/70 hover:text-rice"
+                    i === index ? "border-orange bg-orange text-on-accent" : "border-line text-rice/70 hover:text-rice"
                   }`}
                 >
                   {it === "quad" ? "Quad" : flavorById(it as FlavorId).short}
@@ -139,7 +139,7 @@ export default function Flavors() {
 
           <div key={item} className="pointer-events-auto max-w-[420px] animate-[fadeUp_0.7s_cubic-bezier(.2,.8,.2,1)] md:mt-10">
             {info.bestSeller && (
-              <span className="mb-3 inline-block -rotate-3 rounded-md bg-mango px-2.5 py-1 text-[0.7rem] font-extrabold uppercase tracking-widest text-nori">
+              <span className="mb-3 inline-block -rotate-3 rounded-md bg-mango px-2.5 py-1 text-[0.7rem] font-extrabold uppercase tracking-widest text-on-accent">
                 Best seller
               </span>
             )}
@@ -185,13 +185,9 @@ export default function Flavors() {
             </div>
 
             <div className="mt-5 flex items-center gap-4">
-              <button
-                type="button"
-                onClick={() => presetBuilder(item === "quad" ? { size: "quad" } : { flavor: item })}
-                className="btn btn-orange"
-              >
+              <Link href={item === "quad" ? "/order?size=quad" : `/order?flavor=${item}`} className="btn btn-orange">
                 Add to my tray <Arrow />
-              </button>
+              </Link>
               <span className="hidden text-xs text-rice-dim md:inline">Drag the tray to turn it</span>
             </div>
           </div>

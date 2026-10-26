@@ -8,7 +8,7 @@ const CARDS = [
     title: "GrabFood",
     body: "Delivered to your door. Search “Sushi Bake by Maja” or tap here.",
     cta: "Order on GrabFood",
-    tone: "bg-orange text-nori",
+    tone: "bg-orange text-on-accent",
     icon: (
       <svg viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
         <circle cx="6" cy="17" r="3" />

@@ -1,10 +1,12 @@
+import Link from "next/link";
 import { BUSINESS } from "@/data/menu";
+import InstallApp from "./InstallApp";
 
 const EXPLORE = [
-  ["#flavors", "Flavors"],
-  ["#sizes", "Tray sizes"],
-  ["#build", "Build a tray"],
-  ["#reviews", "Reviews"],
+  ["/menu", "Flavors"],
+  ["/menu#sizes", "Tray sizes"],
+  ["/order", "Build a tray"],
+  ["/#reviews", "Reviews"],
 ];
 
 const ORDER = [
@@ -18,15 +20,18 @@ export default function Footer() {
   return (
     <footer className="overflow-hidden border-t border-line pt-16">
       <div className="mx-auto grid max-w-[1400px] gap-10 px-4 md:grid-cols-[1fr_auto_auto] md:gap-20 md:px-8">
-        <p className="max-w-xs text-sm text-rice-dim">Sushi bake trays baked to order in Makati. Delivery or pick-up, nori packs included.</p>
+        <div className="max-w-xs">
+          <p className="text-sm text-rice-dim">Sushi bake trays baked to order in Makati. Delivery or pick-up, nori packs included.</p>
+          <InstallApp className="btn btn-ghost mt-5 !py-2.5 text-[0.82rem]" />
+        </div>
         <nav aria-label="Explore">
           <p className="eyebrow mb-3">Explore</p>
           <ul className="space-y-2 text-sm">
             {EXPLORE.map(([href, label]) => (
               <li key={href}>
-                <a href={href} className="text-rice/80 hover:text-orange">
+                <Link href={href} className="text-rice/80 hover:text-orange">
                   {label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

@@ -47,7 +47,7 @@ export default function Sizes() {
   const maxPax = Number(size.pax.split("–")[1]);
 
   return (
-    <section ref={ref} id="sizes" className="relative overflow-hidden py-24 md:py-32" aria-labelledby="sizes-title">
+    <section ref={ref} id="sizes" className="relative overflow-hidden py-16 md:py-32" aria-labelledby="sizes-title">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
         <div className="grid gap-6 md:grid-cols-[1fr_1.2fr] md:items-end">
           <Reveal>
@@ -82,7 +82,7 @@ export default function Sizes() {
           ))}
         </div>
 
-        <div className="relative mt-4 h-[46vh] min-h-[320px] md:h-[56vh]">
+        <div className="relative -mx-4 mt-2 h-[44vh] min-h-[300px] md:mx-0 md:mt-4 md:h-[56vh]">
           {webgl ? (
             <SizeScene selected={selected} onSelect={setSelected} active={active} />
           ) : (
@@ -90,17 +90,17 @@ export default function Sizes() {
           )}
         </div>
 
-        <div key={selected} className="mx-auto grid max-w-5xl gap-px overflow-hidden rounded-3xl border border-line bg-line md:grid-cols-4">
+        <div key={selected} className="mx-auto grid max-w-5xl grid-cols-2 gap-px overflow-hidden rounded-3xl border border-line bg-line md:grid-cols-4">
           {[
             { label: "Tray", value: `${size.inches.length} × ${size.inches.width} in`, extra: `${size.name} tray` },
             { label: "Good for", value: `${size.pax} pax`, extra: <People count={maxPax} /> },
             { label: "Nori packs", value: `${size.nori} included`, extra: "Extra packs ₱40 each" },
             { label: size.id === "quad" ? "Price" : "From", value: peso(priceFrom(size.id)), extra: size.splitAllowed ? "Two flavors +₱100" : size.id === "quad" ? "All four flavors" : "One flavor" },
           ].map((cell, i) => (
-            <div key={cell.label} className="bg-nori-2 p-5 md:p-6" style={{ animation: `fadeUp .6s ${i * 70}ms both` }}>
+            <div key={cell.label} className="bg-nori-2 p-4 md:p-6" style={{ animation: `fadeUp .6s ${i * 70}ms both` }}>
               <p className="eyebrow">{cell.label}</p>
-              <p className="display mt-2 text-[2rem]">{cell.value}</p>
-              <div className="mt-2 text-sm text-rice-dim">{cell.extra}</div>
+              <p className="display mt-2 text-[1.55rem] md:text-[2rem]">{cell.value}</p>
+              <div className="mt-2 text-xs text-rice-dim md:text-sm">{cell.extra}</div>
             </div>
           ))}
         </div>

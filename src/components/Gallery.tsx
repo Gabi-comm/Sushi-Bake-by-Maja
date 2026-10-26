@@ -93,8 +93,8 @@ export default function Gallery() {
   }, []);
 
   return (
-    <section ref={section} className="overflow-hidden py-24 md:py-32" aria-labelledby="gallery-title">
-      <div className="mx-auto mb-12 flex max-w-[1400px] flex-wrap items-end justify-between gap-6 px-4 md:px-8">
+    <section ref={section} className="overflow-hidden py-16 md:py-32" aria-labelledby="gallery-title">
+      <div className="mx-auto mb-8 flex max-w-[1400px] flex-wrap items-end justify-between gap-6 px-4 md:px-8">
         <Reveal>
           <p className="eyebrow mb-4 flex items-center gap-2">
             <span className="text-orange">+</span> Real trays, real tables

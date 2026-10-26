@@ -9,8 +9,8 @@ import Reveal from "./Reveal";
  */
 export default function Testimonials() {
   return (
-    <section id="reviews" className="scroll-mt-20 px-4 py-12 md:px-8" aria-labelledby="reviews-title">
-      <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[2.2rem] bg-paper px-5 py-16 text-ink md:px-14 md:py-24">
+    <section id="reviews" className="scroll-mt-20 px-2 py-10 md:px-8 md:py-12" aria-labelledby="reviews-title">
+      <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[1.8rem] bg-paper px-3 py-12 text-ink md:rounded-[2.2rem] md:px-14 md:py-24">
         {/* sesame scatter */}
         <div
           aria-hidden
@@ -21,7 +21,7 @@ export default function Testimonials() {
             backgroundSize: "90px 70px, 130px 110px, 110px 90px",
           }}
         />
-        <div className="relative grid gap-12 md:grid-cols-[0.9fr_1.1fr] md:items-center">
+        <div className="relative grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:items-center md:gap-12">
           <Reveal>
             <p className="mb-4 flex items-center gap-2 text-[0.72rem] uppercase tracking-[0.18em] text-ink/60">
               <span className="text-[#e8631a]">+</span> Customer feedback
@@ -51,17 +51,17 @@ export default function Testimonials() {
                 </span>
               </div>
 
-              <ul className="space-y-3 px-4 py-5 md:px-5">
+              <ul className="space-y-2.5 px-3 py-4 md:space-y-3 md:px-5 md:py-5">
                 {TESTIMONIALS.map((t, i) => {
                   // Unnamed screenshots are labelled "Messenger review" in the data; the chat frame already says that.
                   const name = t.name === "Messenger review" ? null : t.name;
                   return (
-                    <Reveal as="li" key={i} delay={200 + i * 110} className="flex max-w-[88%] items-end gap-2">
-                      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#efe6d8] text-[0.7rem] font-bold text-ink/70">
+                    <Reveal as="li" key={i} delay={200 + i * 110} className="flex max-w-[94%] items-end gap-2 md:max-w-[88%]">
+                      <span className="grid size-6 shrink-0 md:size-7 place-items-center rounded-full bg-[#efe6d8] text-[0.7rem] font-bold text-ink/70">
                         {name ? name[0] : "★"}
                       </span>
                       <figure className="rounded-[1.3rem] rounded-bl-md bg-[#f0ece6] px-4 py-2.5">
-                        <blockquote className="text-[0.98rem] leading-snug">{t.quote}</blockquote>
+                        <blockquote className="text-[0.92rem] leading-snug md:text-[0.98rem]">{t.quote}</blockquote>
                         {name && (
                           <figcaption className="mt-1 text-[0.7rem] font-semibold uppercase tracking-wider text-ink/50">{name}</figcaption>
                         )}
@@ -70,7 +70,7 @@ export default function Testimonials() {
                   );
                 })}
                 <Reveal as="li" delay={200 + TESTIMONIALS.length * 110} className="ml-auto w-fit max-w-[80%]">
-                  <p className="rounded-[1.3rem] rounded-br-md bg-[#e8631a] px-4 py-2.5 text-[0.98rem] font-medium text-[#1a0d05]">
+                  <p className="rounded-[1.3rem] rounded-br-md bg-[#e8631a] px-4 py-2.5 text-[0.92rem] font-medium text-[#1a0d05] md:text-[0.98rem]">
                     Salamat po sa support! See you sa next order 🧡
                   </p>
                   <p className="mt-1 text-right text-[0.7rem] text-ink/45">Maja</p>

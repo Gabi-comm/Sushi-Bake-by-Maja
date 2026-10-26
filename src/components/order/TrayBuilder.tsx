@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BUSINESS, EXTRAS, FLAVORS, QUAD, SIZES, flavorById, peso, sizeById, type FlavorId, type SizeId } from "@/data/menu";
 import { describe, lineTotal, messengerLink, noriCount, orderMessage, orderTotal, type BuilderStart, type LineItem } from "@/lib/order";
 import { useWebGL } from "@/lib/webgl";
@@ -70,7 +70,7 @@ function Preview({ size, flavors }: { size: SizeId; flavors: FlavorId[] }) {
   const s = sizeById(size);
   const webgl = useWebGL();
   return (
-    <div className="relative grid aspect-[4/3] place-items-center">
+    <div className="relative grid aspect-[16/10] place-items-center lg:aspect-[4/3]">
       <div aria-hidden className="absolute inset-[10%] rounded-full opacity-70 blur-3xl" style={{ background: "radial-gradient(circle, rgb(var(--glow) / 0.45), transparent 70%)" }} />
       {webgl ? (
         <div className="absolute inset-0 cursor-grab active:cursor-grabbing">
@@ -94,6 +94,17 @@ export default function TrayBuilder({ start = { size: "large" } }: { start?: Bui
   const [qty, setQty] = useState(1);
   const [cart, setCart] = useState<LineItem[]>([]);
   const [copied, setCopied] = useState(false);
+  const section = useRef<HTMLElement>(null);
+  const [barOn, setBarOn] = useState(true);
+
+  // The phone bar slides away once the builder scrolls out (so it never covers the footer).
+  useEffect(() => {
+    const el = section.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setBarOn(e.isIntersecting), { rootMargin: "0px 0px -120px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const sizeInfo = sizeById(size);
   const canSplit = sizeInfo.splitAllowed;
@@ -139,7 +150,7 @@ export default function TrayBuilder({ start = { size: "large" } }: { start?: Bui
   };
 
   return (
-    <section id="build" className="relative pb-24 pt-32 md:pb-32 md:pt-40" aria-labelledby="build-title">
+    <section ref={section} id="build" className="relative pb-36 pt-28 md:pb-32 md:pt-40" aria-labelledby="build-title">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
         <Reveal>
           <p className="eyebrow mb-4 flex items-center gap-2">
@@ -150,7 +161,7 @@ export default function TrayBuilder({ start = { size: "large" } }: { start?: Bui
           </h1>
         </Reveal>
 
-        <div className="mt-12 grid gap-8 lg:grid-cols-[1.05fr_1fr]">
+        <div className="mt-8 grid gap-8 md:mt-12 lg:grid-cols-[1.05fr_1fr]">
           {/* Choices */}
           <div className="space-y-8">
             <fieldset>
@@ -238,7 +249,8 @@ export default function TrayBuilder({ start = { size: "large" } }: { start?: Bui
           </div>
 
           {/* Preview + summary */}
-          <div className="rounded-[2rem] border border-line bg-nori-2/70 p-5 md:p-7 lg:sticky lg:top-24 lg:self-start">
+          {/* On phones this card comes first, so the tray is seen while choosing. */}
+          <div className="order-first rounded-[2rem] border border-line bg-nori-2/70 p-4 md:p-7 lg:order-none lg:sticky lg:top-24 lg:self-start">
             <Preview size={size} flavors={size === "quad" ? [] : flavors} />
 
             <div className="mt-4 flex items-end justify-between gap-4 border-b border-line pb-4">
@@ -270,12 +282,12 @@ export default function TrayBuilder({ start = { size: "large" } }: { start?: Bui
               </ul>
             )}
 
-            <div className="mt-5 flex items-baseline justify-between">
+            <div className="mt-5 hidden items-baseline justify-between lg:flex">
               <p className="eyebrow">{cart.length ? "Order total" : "Total"}</p>
               <p className="display text-4xl text-orange">{peso(total)}</p>
             </div>
 
-            <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            <div className="mt-5 hidden gap-2 sm:grid-cols-2 lg:grid">
               <a
                 href={items.length ? messengerLink(items) : undefined}
                 target="_blank"
@@ -290,10 +302,33 @@ export default function TrayBuilder({ start = { size: "large" } }: { start?: Bui
                 Order on GrabFood
               </a>
             </div>
-            <p className="mt-3 text-center text-xs text-rice-dim" aria-live="polite">
+            <p className="mt-3 text-center text-xs text-rice-dim max-lg:mb-1" aria-live="polite">
               {copied ? "Order copied. Paste it in the chat if it isn't filled in." : "Prices from our menu; GrabFood prices may vary."}
             </p>
+            <a href={BUSINESS.grabfood} target="_blank" rel="noopener noreferrer" className="btn btn-ghost mt-3 w-full justify-center lg:hidden">
+              Or order on GrabFood
+            </a>
           </div>
+        </div>
+      </div>
+
+      {/* Phones: total and send always in reach while scrolling the choices. */}
+      <div className={`fixed inset-x-0 bottom-0 z-40 border-t border-line bg-nori/90 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md transition-transform duration-500 lg:hidden ${barOn ? "" : "translate-y-full"}`}>
+        <div className="mx-auto flex max-w-xl items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[0.7rem] uppercase tracking-[0.14em] text-rice-dim">{cart.length ? `Order · ${cart.length} trays` : "Total"}</p>
+            <p className="display text-3xl leading-none">{peso(total)}</p>
+          </div>
+          <a
+            href={items.length ? messengerLink(items) : undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={copy}
+            aria-disabled={!items.length}
+            className={`btn btn-orange shrink-0 ${items.length ? "" : "pointer-events-none opacity-40"}`}
+          >
+            Send on Messenger <Arrow />
+          </a>
         </div>
       </div>
     </section>

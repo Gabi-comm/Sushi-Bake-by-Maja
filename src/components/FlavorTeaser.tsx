@@ -7,7 +7,7 @@ import { Arrow } from "./Nav";
 /** Home-page taste of the menu: each flavor as a top-down scoop of its baked crust. */
 export default function FlavorTeaser() {
   return (
-    <section className="py-24 md:py-32" aria-labelledby="teaser-title">
+    <section className="py-16 md:py-32" aria-labelledby="teaser-title">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <Reveal>
@@ -25,7 +25,7 @@ export default function FlavorTeaser() {
           </Reveal>
         </div>
 
-        <ul className="mt-14 grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-4 md:gap-x-8">
+        <ul className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 md:mt-14 md:grid-cols-4 md:gap-x-8">
           {FLAVORS.map((f, i) => (
             <Reveal as="li" key={f.id} delay={i * 90}>
               <Link href={`/order?flavor=${f.id}`} className="group block text-center">
@@ -47,9 +47,9 @@ export default function FlavorTeaser() {
                     </span>
                   )}
                 </span>
-                <span className="display mt-5 block text-[clamp(1.6rem,2.6vw,2.2rem)]">{f.name}</span>
-                <span className="mt-1 block text-xs uppercase tracking-[0.14em] text-rice-dim">{f.tagline}</span>
-                <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold">
+                <span className="display mt-4 block text-[clamp(1.5rem,2.6vw,2.2rem)] md:mt-5">{f.name}</span>
+                <span className="mt-1 hidden text-xs uppercase tracking-[0.14em] text-rice-dim sm:block">{f.tagline}</span>
+                <span className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold md:mt-3">
                   from {peso(f.prices.regular)}
                   <Arrow className="transition group-hover:translate-x-1" />
                 </span>
@@ -58,7 +58,7 @@ export default function FlavorTeaser() {
           ))}
         </ul>
 
-        <Reveal className="mt-14">
+        <Reveal className="mt-10 md:mt-14">
           <Link
             href="/order?size=quad"
             className="group flex flex-wrap items-center justify-between gap-4 rounded-[2rem] border border-line bg-nori-2/60 px-6 py-5 transition hover:border-rice/40 md:px-8"

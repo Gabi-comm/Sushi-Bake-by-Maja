@@ -214,7 +214,7 @@ export default function Hero() {
         </h1>
 
         {/* The Quad tray, cut out from Maja's own photo */}
-        <div className="pointer-events-none absolute left-1/2 top-[118px] z-20 w-[min(86vw,560px)] -translate-x-1/2 md:top-[8%] md:w-[min(40vw,600px)] md:translate-x-0">
+        <div className="pointer-events-none absolute left-1/2 top-[118px] z-20 w-[min(86vw,560px)] -translate-x-1/2 md:top-[6%] md:w-[min(38vw,580px,58vh)] md:translate-x-0">
           {/* GSAP owns this wrapper's transform, so positioning stays on the parent. */}
           <div ref={tray} className="hero-tray relative">
             <div
@@ -260,11 +260,12 @@ export default function Hero() {
           </div>
         </div>
 
+        {/* Seeds below the tray would sit on the pitch copy on phones, so those are desktop-only. */}
         {SEEDS.map(([left, top, size, rot, delay], i) => (
           <span
             key={i}
             aria-hidden
-            className="pointer-events-none absolute z-30 rounded-[50%] bg-[#efe3c6] shadow-[inset_-1px_-1px_0_rgba(0,0,0,0.25)]"
+            className={`pointer-events-none absolute z-30 rounded-[50%] bg-[#efe3c6] shadow-[inset_-1px_-1px_0_rgba(0,0,0,0.25)] ${top > 50 ? "hidden md:block" : ""}`}
             style={{
               left: `${left}%`,
               top: `${top}%`,

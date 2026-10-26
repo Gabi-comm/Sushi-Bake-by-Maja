@@ -45,7 +45,7 @@ const CARDS = [
 
 export default function FindUs() {
   return (
-    <section id="find-us" className="py-24 md:py-32" aria-labelledby="find-title">
+    <section id="find-us" className="scroll-mt-16 py-16 md:py-32" aria-labelledby="find-title">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
         <Reveal>
           <p className="eyebrow mb-4 flex items-center gap-2">

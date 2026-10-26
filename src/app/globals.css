@@ -1,0 +1,186 @@
+@import "tailwindcss";
+
+:root {
+  --nori: #14110f;
+  --nori-2: #1d1916;
+  --nori-3: #2a2420;
+  --rice: #f6efe4;
+  --rice-dim: #b9ad9c;
+  --orange: #e8631a;
+  --orange-deep: #c94f0f;
+  --mango: #ffc94a;
+  --sriracha: #d6382a;
+  --line: rgb(246 239 228 / 0.12);
+}
+
+@theme inline {
+  --color-nori: var(--nori);
+  --color-nori-2: var(--nori-2);
+  --color-nori-3: var(--nori-3);
+  --color-rice: var(--rice);
+  --color-rice-dim: var(--rice-dim);
+  --color-orange: var(--orange);
+  --color-orange-deep: var(--orange-deep);
+  --color-mango: var(--mango);
+  --color-sriracha: var(--sriracha);
+  --color-line: var(--line);
+  --font-sans: var(--font-manrope);
+  --font-display: var(--font-instrument);
+}
+
+html {
+  background: var(--nori);
+  color-scheme: dark;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+body {
+  background: var(--nori);
+  color: var(--rice);
+  font-family: var(--font-manrope), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+::selection {
+  background: var(--orange);
+  color: var(--nori);
+}
+
+/* Film grain over everything, keeps the dark canvas from feeling flat. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.display {
+  font-family: var(--font-instrument), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 0.88;
+}
+
+.eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--rice-dim);
+}
+
+.pill {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+  background: rgb(29 25 22 / 0.6);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  border-radius: 999px;
+  padding: 0.85rem 1.35rem;
+  font-weight: 700;
+  font-size: 0.92rem;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.25s, box-shadow 0.25s;
+}
+.btn:hover {
+  transform: translateY(-2px);
+}
+.btn:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--mango);
+  outline-offset: 3px;
+}
+.btn-orange {
+  background: var(--orange);
+  color: #1a0d05;
+  box-shadow: 0 10px 30px -10px rgb(232 99 26 / 0.8);
+}
+.btn-orange:hover {
+  background: #ff7a2e;
+}
+.btn-ghost {
+  border: 1px solid var(--line);
+  color: var(--rice);
+}
+.btn-ghost:hover {
+  background: rgb(246 239 228 / 0.06);
+}
+
+/* Reveal-on-scroll (driven by the Reveal component). */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.9s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+[data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, -14px, 0) rotate(-1.2deg);
+  }
+}
+@keyframes steam {
+  0% {
+    transform: translate3d(0, 20px, 0) scale(0.8);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate3d(12px, -160px, 0) scale(1.6);
+    opacity: 0;
+  }
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}

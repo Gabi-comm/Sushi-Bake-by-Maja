@@ -46,6 +46,9 @@ const SPARK = "M0 -10C1 -3 3 -1 10 0C3 1 1 3 0 10C-1 3 -3 1 -10 0C-3 -1 -1 -3 0 
 export default function Hero() {
   const root = useRef<HTMLElement>(null);
   const tray = useRef<HTMLDivElement>(null);
+  // The intro mode outlives a remount (dev Strict Mode, route caching): cleanup clears the html
+  // attribute, so a re-run would otherwise fall back to the short entrance.
+  const introMode = useRef<string | undefined>(undefined);
 
   // Intro, on every load of the home page: the tray pops in centre stage on a curtain with a
   // burst of highlight lines, then the curtain wipes up and the tray glides into its hero spot.
@@ -55,7 +58,9 @@ export default function Hero() {
   // client-side return to home is set up before the browser paints.
   useLayoutEffect(() => {
     const html = document.documentElement;
-    const mode = html.dataset.intro; // "play" | "enter" | undefined (reduced motion)
+    introMode.current ??= html.dataset.intro;
+    const mode = introMode.current; // "play" | "enter" | undefined (reduced motion)
+    if (mode) html.dataset.intro = mode; // the curtain and start states key off it
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       delete html.dataset.intro;
       return;
@@ -84,7 +89,8 @@ export default function Hero() {
       // Start the tray at the centre of the screen, above the curtain.
       const r = el.getBoundingClientRect();
       const mobile = window.innerWidth < 768;
-      const centre = Math.min(window.innerWidth * (mobile ? 0.68 : 0.62), 520) / r.width;
+      // Height cap keeps the burst clear of the name on short laptop screens.
+      const centre = Math.min(window.innerWidth * (mobile ? 0.68 : 0.62), window.innerHeight * 0.48, 520) / r.width;
       const holder = el.parentElement!; // its z-index sets the stacking order
       html.style.overflow = "hidden";
       gsap.set(holder, { zIndex: 75 });
@@ -102,6 +108,7 @@ export default function Hero() {
         .timeline({
           defaults: { ease: "expo.out" },
           onComplete: () => {
+            introMode.current = "enter";
             gsap.set(holder, { clearProps: "zIndex" });
             done();
           },

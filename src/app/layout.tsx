@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Manrope } from "next/font/google";
 import { BUSINESS, FLAVORS } from "@/data/menu";
-import { THEME_COLOR, THEME_SCRIPT } from "@/lib/theme-shared";
+import { INTRO_SCRIPT, THEME_COLOR, THEME_SCRIPT } from "@/lib/theme-shared";
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import PwaRegister from "@/components/PwaRegister";
@@ -68,10 +68,10 @@ const jsonLd = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    // The head script may set data-theme before hydration, hence the warning opt-out.
+    // The head script may set data-theme/data-intro before hydration, hence the warning opt-out.
     <html lang="en" className={`${instrument.variable} ${manrope.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT + INTRO_SCRIPT }} />
       </head>
       <body>
         <SmoothScroll />

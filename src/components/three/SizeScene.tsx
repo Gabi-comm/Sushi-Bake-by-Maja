@@ -46,12 +46,12 @@ function Dimension({ dims, visible }: { dims: TrayDims; visible: number }) {
   const color = theme === "dark" ? "#e8631a" : "#1a0f08";
   return (
     <group ref={ref}>
-      <Line points={[[-l, y, w + off], [l, y, w + off]]} color={color} lineWidth={1.5} />
-      <Line points={[[-l, y, w + off - 0.03], [-l, y, w + off + 0.03]]} color={color} lineWidth={1.5} />
-      <Line points={[[l, y, w + off - 0.03], [l, y, w + off + 0.03]]} color={color} lineWidth={1.5} />
-      <Line points={[[l + off, y, -w], [l + off, y, w]]} color={color} lineWidth={1.5} />
-      <Line points={[[l + off - 0.03, y, -w], [l + off + 0.03, y, -w]]} color={color} lineWidth={1.5} />
-      <Line points={[[l + off - 0.03, y, w], [l + off + 0.03, y, w]]} color={color} lineWidth={1.5} />
+      <Line points={[[-l, y, w + off], [l, y, w + off]]} color={color} lineWidth={2.2} />
+      <Line points={[[-l, y, w + off - 0.03], [-l, y, w + off + 0.03]]} color={color} lineWidth={2.2} />
+      <Line points={[[l, y, w + off - 0.03], [l, y, w + off + 0.03]]} color={color} lineWidth={2.2} />
+      <Line points={[[l + off, y, -w], [l + off, y, w]]} color={color} lineWidth={2.2} />
+      <Line points={[[l + off - 0.03, y, -w], [l + off + 0.03, y, -w]]} color={color} lineWidth={2.2} />
+      <Line points={[[l + off - 0.03, y, w], [l + off + 0.03, y, w]]} color={color} lineWidth={2.2} />
     </group>
   );
 }
@@ -90,10 +90,10 @@ function Trays({ selected, onSelect }: { selected: SizeId; onSelect: (id: SizeId
             {on && (
               <>
                 <Html position={[0, 0, t.dims.width / 2 + 0.2]} center zIndexRange={[20, 0]} style={{ pointerEvents: "none" }}>
-                  <span className="whitespace-nowrap rounded-full bg-orange px-2.5 py-1 text-[0.7rem] font-bold text-on-accent">{size.inches.length}″</span>
+                  <span className="whitespace-nowrap rounded-full bg-rice px-3 py-1.5 text-[0.8rem] font-bold text-nori shadow-lg">{size.inches.length} in</span>
                 </Html>
                 <Html position={[t.dims.length / 2 + 0.2, 0, 0]} center zIndexRange={[20, 0]} style={{ pointerEvents: "none" }}>
-                  <span className="whitespace-nowrap rounded-full bg-orange px-2.5 py-1 text-[0.7rem] font-bold text-on-accent">{size.inches.width}″</span>
+                  <span className="whitespace-nowrap rounded-full bg-rice px-3 py-1.5 text-[0.8rem] font-bold text-nori shadow-lg">{size.inches.width} in</span>
                 </Html>
               </>
             )}
@@ -109,12 +109,17 @@ function Rig({ selected }: { selected: SizeId }) {
   const target = useRef(new THREE.Vector3());
   useFrame(() => {
     const t = LAYOUT.find((l) => l.id === selected)!;
-    const narrow = size.width / size.height < 1.1;
-    // Phones frame the chosen tray; wide screens keep the whole lineup in view.
-    const x = narrow ? t.x : t.x * 0.35;
-    const dist = narrow ? 1.7 + t.dims.length * 0.9 : 3.7;
+    const aspect = size.width / size.height;
+    const narrow = aspect < 1.1;
+    // Phones frame the chosen tray with room for both dimension lines and their pills;
+    // wide screens keep the whole lineup in view.
+    const halfFov = THREE.MathUtils.degToRad((camera as THREE.PerspectiveCamera).fov / 2);
+    const halfWidth = t.dims.length / 2 + 0.42; // line offset + pill + breathing room
+    const fit = halfWidth / (Math.tan(halfFov) * aspect) + t.dims.width * 0.6;
+    const x = narrow ? t.x + 0.06 : t.x * 0.35;
+    const dist = narrow ? fit : 3.7;
     camera.position.lerp(new THREE.Vector3(x, dist * 0.62, dist * 0.78), 0.06);
-    target.current.lerp(new THREE.Vector3(x, 0, 0.05), 0.06);
+    target.current.lerp(new THREE.Vector3(x, 0, 0.08), 0.06);
     camera.lookAt(target.current);
   });
   return null;

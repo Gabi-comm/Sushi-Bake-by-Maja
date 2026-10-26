@@ -158,6 +158,37 @@ body::after {
   }
 }
 
+/* Home intro start states (see INTRO_SCRIPT). Set in CSS so nothing flashes before the JS runs. */
+.intro-curtain,
+.intro-drizzle-wrap {
+  display: none;
+}
+html[data-intro="play"] .intro-curtain,
+html[data-intro="play"] .intro-drizzle-wrap {
+  display: block;
+}
+html[data-intro] .hero-line,
+html[data-intro] .hero-fade,
+html[data-intro] .hero-tray,
+html[data-intro] .intro-word {
+  visibility: hidden;
+  /* Failsafe: if the script never runs, show the page anyway. */
+  animation: intro-failsafe-show 0s 6s forwards;
+}
+html[data-intro="play"] .intro-curtain {
+  animation: intro-failsafe-hide 0s 7s forwards;
+}
+@keyframes intro-failsafe-show {
+  to {
+    visibility: visible;
+  }
+}
+@keyframes intro-failsafe-hide {
+  to {
+    visibility: hidden;
+  }
+}
+
 /* Reveal-on-scroll (driven by the Reveal component). */
 [data-reveal] {
   opacity: 0;

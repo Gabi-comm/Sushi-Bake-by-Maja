@@ -10,3 +10,10 @@ export const THEME_COLOR: Record<Theme, string> = { light: "#e8631a", dark: "#14
  * Kept as a string because it must not wait for React.
  */
 export const THEME_SCRIPT = `try{var t=localStorage.getItem("${THEME_KEY}");if(t==="dark")document.documentElement.dataset.theme="dark"}catch(e){}`;
+
+/**
+ * Also pre-paint: picks the home intro before any HTML shows. "play" = full curtain intro
+ * (first visit this session), "enter" = short entrance. Reduced motion sets nothing.
+ * globals.css hides the hero's start states under html[data-intro]; Hero clears the attribute.
+ */
+export const INTRO_SCRIPT = `try{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.dataset.intro=sessionStorage.getItem("sbm-intro")?"enter":"play"}catch(e){}`;

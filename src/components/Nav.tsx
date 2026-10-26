@@ -111,7 +111,7 @@ export default function Nav() {
         id="mobile-menu"
         className={`overflow-hidden transition-[max-height] duration-500 lg:hidden ${open ? "max-h-[32rem]" : "max-h-0"}`}
       >
-        <ul className="mx-4 mt-3 grid gap-1 rounded-3xl border border-line bg-nori-2/95 p-3">
+        <ul className="mx-4 mt-3 grid gap-1 rounded-3xl border border-line bg-nori-2 p-3 shadow-2xl">
           {LINKS.map((l) => (
             <li key={l.href}>
               <Link href={l.href} onClick={() => setOpen(false)} className="block rounded-2xl px-4 py-3 text-rice/90 hover:bg-nori-3">

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { BUSINESS, FLAVORS } from "@/data/menu";
 import { Arrow } from "./Nav";
@@ -45,38 +45,49 @@ export default function Hero() {
   const tray = useRef<HTMLDivElement>(null);
 
   // Intro, first visit per session: the tray pops in centre stage on a curtain, gets a mayo
-  // drizzle, then the curtain wipes up and the tray glides into its hero spot.
-  // Later visits (e.g. navigating back home) get a short entrance instead.
-  useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let seen = false;
+  // drizzle, then the curtain wipes up and the tray glides into its hero spot. Later visits
+  // get a short entrance. INTRO_SCRIPT picks the mode before first paint and globals.css
+  // holds the starting states, so nothing flashes while the JS loads. Layout effect, so a
+  // client-side return to home is set up before the browser paints.
+  useLayoutEffect(() => {
+    const html = document.documentElement;
+    const mode = html.dataset.intro; // "play" | "enter" | undefined (reduced motion)
     try {
-      seen = sessionStorage.getItem("sbm-intro") === "1";
       sessionStorage.setItem("sbm-intro", "1");
     } catch {
-      // Storage blocked: just play the intro.
+      // Storage blocked: the intro just plays again next time.
     }
-    const html = document.documentElement;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      delete html.dataset.intro;
+      return;
+    }
     let tl: gsap.core.Timeline | undefined;
+    const done = () => {
+      delete html.dataset.intro;
+      html.style.overflow = "";
+    };
 
     const ctx = gsap.context(() => {
       const el = tray.current!;
-      if (reduce || seen) {
-        gsap.set(".intro-curtain, .intro-drizzle-wrap", { display: "none" });
-        if (reduce) return;
-        gsap
-          .timeline({ defaults: { ease: "expo.out" } })
-          .from(".hero-line", { yPercent: 105, duration: 1.1, stagger: 0.08 })
-          .from(el, { y: -60, rotate: -14, opacity: 0, duration: 1.3 }, 0.1)
-          .from(".hero-fade", { opacity: 0, y: 24, duration: 0.9, stagger: 0.08 }, 0.35);
+      const show = { visibility: "visible" };
+
+      if (mode !== "play") {
+        tl = gsap
+          .timeline({ defaults: { ease: "expo.out" }, onComplete: done })
+          .fromTo(".hero-line", { yPercent: 105, ...show }, { yPercent: 0, duration: 1.1, stagger: 0.08 })
+          .fromTo(el, { y: -60, rotate: -14, opacity: 0, ...show }, { y: 0, rotate: 0, opacity: 1, duration: 1.3 }, 0.1)
+          .fromTo(".hero-fade", { opacity: 0, y: 24, ...show }, { opacity: 1, y: 0, duration: 0.9, stagger: 0.08 }, 0.35);
+        // The inline start states now hide everything, so the CSS guard can go.
+        delete html.dataset.intro;
         return;
       }
 
       // Start the tray at the centre of the screen, above the curtain.
       const r = el.getBoundingClientRect();
-      const centre = Math.min(window.innerWidth * (window.innerWidth < 768 ? 0.84 : 0.62), 520) / r.width;
-      html.style.overflow = "hidden";
+      const mobile = window.innerWidth < 768;
+      const centre = Math.min(window.innerWidth * (mobile ? 0.84 : 0.62), 520) / r.width;
       const holder = el.parentElement!; // its z-index sets the stacking order
+      html.style.overflow = "hidden";
       gsap.set(holder, { zIndex: 75 });
       gsap.set(el, {
         x: window.innerWidth / 2 - (r.left + r.width / 2),
@@ -84,6 +95,7 @@ export default function Hero() {
         scale: centre * 0.55,
         rotate: -28,
         opacity: 0,
+        ...show,
       });
       gsap.set(".intro-drizzle-wrap", { width: r.width * centre * 0.86 });
 
@@ -92,18 +104,18 @@ export default function Hero() {
           defaults: { ease: "expo.out" },
           onComplete: () => {
             gsap.set(holder, { clearProps: "zIndex" });
-            gsap.set(".intro-curtain, .intro-drizzle-wrap", { display: "none" });
-            html.style.overflow = "";
+            done();
           },
         })
         .to(el, { opacity: 1, scale: centre, rotate: -8, duration: 1.1, ease: "back.out(1.5)" })
-        .fromTo(".intro-drizzle", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1, ease: "power2.inOut", stagger: 0.12 }, 0.45)
-        .fromTo(".intro-word", { yPercent: 115 }, { yPercent: 0, duration: 0.9, stagger: 0.07 }, 0.55)
-        .to(".intro-drizzle-wrap", { opacity: 0, scale: 1.08, duration: 0.5, ease: "power2.in" }, "+=0.3")
+        .to(".intro-drizzle", { strokeDashoffset: 0, duration: 1, ease: "power2.inOut", stagger: 0.12 }, 0.45)
+        .fromTo(".intro-word", { yPercent: 115, ...show }, { yPercent: 0, duration: 0.9, stagger: 0.07 }, 0.55)
+        .to(".intro-drizzle-wrap", { opacity: 0, duration: 0.45, ease: "power2.in" }, "+=0.35")
         .to(".intro-curtain", { clipPath: "ellipse(140% 0% at 50% 0%)", duration: 1.15, ease: "expo.inOut" }, "<")
         .to(el, { x: 0, y: 0, scale: 1, rotate: 0, duration: 1.35, ease: "expo.inOut" }, "<")
-        .from(".hero-line", { yPercent: 105, duration: 1.1, stagger: 0.1 }, "-=0.6")
-        .from(".hero-fade", { opacity: 0, y: 24, duration: 0.9, stagger: 0.08 }, "-=0.8");
+        .fromTo(".hero-line", { yPercent: 105, ...show }, { yPercent: 0, duration: 1.1, stagger: 0.1 }, "-=0.6")
+        .fromTo(".hero-fade", { opacity: 0, y: 24, ...show }, { opacity: 1, y: 0, duration: 0.9, stagger: 0.08 }, "-=0.8")
+        .set(".intro-curtain, .intro-drizzle-wrap", { display: "none" });
     }, root);
 
     // Any key or a tap on the curtain skips straight to the end.
@@ -114,7 +126,7 @@ export default function Hero() {
       window.removeEventListener("keydown", skip);
       window.removeEventListener("sbm:skip-intro", skip);
       ctx.revert();
-      html.style.overflow = "";
+      done();
     };
   }, []);
 
@@ -174,6 +186,7 @@ export default function Hero() {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeDasharray="1"
+              strokeDashoffset="1"
             />
           ))}
         </svg>
@@ -203,7 +216,7 @@ export default function Hero() {
         {/* The Quad tray, cut out from Maja's own photo */}
         <div className="pointer-events-none absolute left-1/2 top-[118px] z-20 w-[min(86vw,560px)] -translate-x-1/2 md:top-[8%] md:w-[min(40vw,600px)] md:translate-x-0">
           {/* GSAP owns this wrapper's transform, so positioning stays on the parent. */}
-          <div ref={tray} className="relative">
+          <div ref={tray} className="hero-tray relative">
             <div
               className="transition-transform duration-700 ease-out"
               style={{ transform: "translate3d(calc(var(--px) * 26px), calc(var(--py) * 20px), 0) rotate(calc(6deg + var(--px) * 5deg))" }}

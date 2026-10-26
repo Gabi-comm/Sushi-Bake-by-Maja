@@ -24,6 +24,7 @@
   --ink: #1a120c;
   --curtain: #14110f;
   --curtain-ink: #f6efe4;
+  --curtain-mark: #e8631a;
   color-scheme: light;
 }
 
@@ -41,6 +42,7 @@
   --glow: 232 99 26;
   --curtain: #e8631a;
   --curtain-ink: #14110f;
+  --curtain-mark: #ffc94a;
   color-scheme: dark;
 }
 
@@ -160,11 +162,11 @@ body::after {
 
 /* Home intro start states (see INTRO_SCRIPT). Set in CSS so nothing flashes before the JS runs. */
 .intro-curtain,
-.intro-drizzle-wrap {
+.intro-burst {
   display: none;
 }
 html[data-intro="play"] .intro-curtain,
-html[data-intro="play"] .intro-drizzle-wrap {
+html[data-intro="play"] .intro-burst {
   display: block;
 }
 html[data-intro] .hero-line,

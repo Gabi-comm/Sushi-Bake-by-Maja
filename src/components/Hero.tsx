@@ -20,43 +20,42 @@ const SEEDS = [
 ] as const;
 
 /**
- * A piped-mayo zigzag like the one on the California Maki: tight back-and-forth strokes
- * across the tray, with rounded turns (each corner is a quadratic curve through the midpoints).
+ * Emphasis lines bursting out around the tray as it lands: rays on an ellipse that matches the
+ * tray's footprint (viewBox -100..100, tray about 144 x 128 units), alternating long and short.
  */
-function drizzle(x0: number, y0: number, strokes: number, step: number, amp: number, tilt: number) {
-  const pts = Array.from({ length: strokes + 1 }, (_, i) => {
-    const jitter = Math.sin(i * 2.3) * 6; // hand-piped, not ruled
-    return [x0 + i * step + jitter, y0 + (i % 2 ? -amp : amp) + (tilt * i) / strokes];
-  });
-  let d = `M${pts[0][0]} ${pts[0][1]}`;
-  for (let i = 1; i < pts.length - 1; i++) {
-    const [x, y] = pts[i];
-    const [nx, ny] = pts[i + 1];
-    d += ` Q${x.toFixed(1)} ${y.toFixed(1)} ${((x + nx) / 2).toFixed(1)} ${((y + ny) / 2).toFixed(1)}`;
-  }
-  const [lx, ly] = pts[pts.length - 1];
-  return `${d} L${lx.toFixed(1)} ${ly.toFixed(1)}`;
-}
+const RAYS = Array.from({ length: 16 }, (_, i) => {
+  const a = (i / 16) * Math.PI * 2 + 0.12;
+  const [rx, ry] = [80, 72];
+  const inner = 1;
+  const outer = i % 2 ? 1.16 : 1.28;
+  const pt = (k: number) => [(Math.cos(a) * rx * k).toFixed(1), (Math.sin(a) * ry * k).toFixed(1)];
+  const [x1, y1] = pt(inner);
+  const [x2, y2] = pt(outer);
+  return `M${x1} ${y1}L${x2} ${y2}`;
+});
 
-const DRIZZLE = [drizzle(30, 150, 17, 32, 95, 60), drizzle(60, 210, 15, 34, 80, -50)];
+/** Four-point sparkles at a few corners of the burst: [x, y, size]. */
+const SPARKS = [
+  [-88, -58, 9],
+  [92, -30, 6],
+  [70, 74, 8],
+  [-64, 80, 5],
+] as const;
+const SPARK = "M0 -10C1 -3 3 -1 10 0C3 1 1 3 0 10C-1 3 -3 1 -10 0C-3 -1 -1 -3 0 -10Z";
 
 export default function Hero() {
   const root = useRef<HTMLElement>(null);
   const tray = useRef<HTMLDivElement>(null);
 
-  // Intro, first visit per session: the tray pops in centre stage on a curtain, gets a mayo
-  // drizzle, then the curtain wipes up and the tray glides into its hero spot. Later visits
-  // get a short entrance. INTRO_SCRIPT picks the mode before first paint and globals.css
+  // Intro, on every load of the home page: the tray pops in centre stage on a curtain with a
+  // burst of highlight lines, then the curtain wipes up and the tray glides into its hero spot.
+  // Arriving from another page client-side gets a short entrance instead. INTRO_SCRIPT picks
+  // the mode before first paint and globals.css
   // holds the starting states, so nothing flashes while the JS loads. Layout effect, so a
   // client-side return to home is set up before the browser paints.
   useLayoutEffect(() => {
     const html = document.documentElement;
     const mode = html.dataset.intro; // "play" | "enter" | undefined (reduced motion)
-    try {
-      sessionStorage.setItem("sbm-intro", "1");
-    } catch {
-      // Storage blocked: the intro just plays again next time.
-    }
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       delete html.dataset.intro;
       return;
@@ -85,7 +84,7 @@ export default function Hero() {
       // Start the tray at the centre of the screen, above the curtain.
       const r = el.getBoundingClientRect();
       const mobile = window.innerWidth < 768;
-      const centre = Math.min(window.innerWidth * (mobile ? 0.84 : 0.62), 520) / r.width;
+      const centre = Math.min(window.innerWidth * (mobile ? 0.68 : 0.62), 520) / r.width;
       const holder = el.parentElement!; // its z-index sets the stacking order
       html.style.overflow = "hidden";
       gsap.set(holder, { zIndex: 75 });
@@ -97,7 +96,7 @@ export default function Hero() {
         opacity: 0,
         ...show,
       });
-      gsap.set(".intro-drizzle-wrap", { width: r.width * centre * 0.86 });
+      gsap.set(".intro-burst", { width: Math.min(r.width * centre * 1.4, window.innerWidth * 0.98) });
 
       tl = gsap
         .timeline({
@@ -108,14 +107,18 @@ export default function Hero() {
           },
         })
         .to(el, { opacity: 1, scale: centre, rotate: -8, duration: 1.1, ease: "back.out(1.5)" })
-        .to(".intro-drizzle", { strokeDashoffset: 0, duration: 1, ease: "power2.inOut", stagger: 0.12 }, 0.45)
+        // Rays shoot out as the tray settles, then fly off outward; sparkles twinkle with them.
+        .to(".intro-ray", { strokeDashoffset: 0, duration: 0.4, ease: "power3.out", stagger: { each: 0.018, from: "random" } }, 0.5)
+        .to(".intro-ray", { strokeDashoffset: -1, duration: 0.55, ease: "power2.in", stagger: { each: 0.018, from: "random" } }, 1.05)
+        .fromTo(".intro-spark", { scale: 0, rotate: -45, transformOrigin: "50% 50%" }, { scale: 1, rotate: 0, duration: 0.45, ease: "back.out(3)", stagger: 0.08 }, 0.6)
+        .to(".intro-spark", { scale: 0, rotate: 45, duration: 0.35, ease: "power2.in", stagger: 0.06 }, 1.2)
         .fromTo(".intro-word", { yPercent: 115, ...show }, { yPercent: 0, duration: 0.9, stagger: 0.07 }, 0.55)
-        .to(".intro-drizzle-wrap", { opacity: 0, duration: 0.45, ease: "power2.in" }, "+=0.35")
-        .to(".intro-curtain", { clipPath: "ellipse(140% 0% at 50% 0%)", duration: 1.15, ease: "expo.inOut" }, "<")
+        .to(".intro-underline", { strokeDashoffset: 0, duration: 0.6, ease: "power2.out" }, 0.95)
+        .to(".intro-curtain", { clipPath: "ellipse(140% 0% at 50% 0%)", duration: 1.15, ease: "expo.inOut" }, 1.75)
         .to(el, { x: 0, y: 0, scale: 1, rotate: 0, duration: 1.35, ease: "expo.inOut" }, "<")
         .fromTo(".hero-line", { yPercent: 105, ...show }, { yPercent: 0, duration: 1.1, stagger: 0.1 }, "-=0.6")
         .fromTo(".hero-fade", { opacity: 0, y: 24, ...show }, { opacity: 1, y: 0, duration: 0.9, stagger: 0.08 }, "-=0.8")
-        .set(".intro-curtain, .intro-drizzle-wrap", { display: "none" });
+        .set(".intro-curtain, .intro-burst", { display: "none" });
     }, root);
 
     // Any key or a tap on the curtain skips straight to the end.
@@ -162,32 +165,57 @@ export default function Hero() {
           style={{ background: "radial-gradient(circle at 50% 40%, rgb(232 99 26 / 0.35), transparent 55%)" }}
         />
         <div className="absolute inset-x-0 bottom-[22%] text-center md:bottom-[7%]">
-          <p className="display overflow-hidden pb-[0.08em] text-[clamp(3.2rem,10vw,7rem)]">
-            <span className="intro-word inline-block">Sushi</span> <span className="intro-word inline-block italic">Bake</span>
-          </p>
+          <div className="relative mx-auto w-fit">
+            {/* Highlighter swipe under the name */}
+            <svg
+              aria-hidden
+              viewBox="0 0 300 24"
+              preserveAspectRatio="none"
+              className="absolute -inset-x-[4%] bottom-[8%] h-[0.32em] w-[108%] text-[clamp(3.2rem,10vw,7rem)]"
+              fill="none"
+            >
+              <path
+                className="intro-underline"
+                d="M4 16C70 6 160 4 296 10"
+                stroke="var(--curtain-mark)"
+                strokeWidth={14}
+                strokeLinecap="round"
+                pathLength={1}
+                strokeDasharray="1"
+                strokeDashoffset="1"
+                opacity={0.85}
+              />
+            </svg>
+            <p className="display relative overflow-hidden pb-[0.08em] text-[clamp(3.2rem,10vw,7rem)]">
+              <span className="intro-word inline-block">Sushi</span> <span className="intro-word inline-block italic">Bake</span>
+            </p>
+          </div>
           <p className="mt-2 overflow-hidden text-xs font-bold uppercase tracking-[0.35em] md:text-sm">
             <span className="intro-word inline-block">by Maja · baked in Makati</span>
           </p>
         </div>
       </div>
 
-      {/* Mayo drizzle, drawn over the tray while it sits centre stage. The viewBox leaves room
-          for the round caps and each curve's swing, so no stroke gets clipped. */}
-      <div aria-hidden className="intro-drizzle-wrap pointer-events-none fixed left-1/2 top-[40%] z-[76] -translate-x-1/2 -translate-y-1/2">
-        <svg viewBox="-30 -30 660 420" className="h-auto w-full overflow-visible" fill="none">
-          {DRIZZLE.map((d, i) => (
+      {/* Highlight burst around the tray while it sits centre stage */}
+      <div aria-hidden className="intro-burst pointer-events-none fixed left-1/2 top-[40%] z-[76] -translate-x-1/2 -translate-y-1/2">
+        <svg viewBox="-100 -100 200 200" className="h-auto w-full overflow-visible" fill="none">
+          {RAYS.map((d, i) => (
             <path
               key={d}
               d={d}
               pathLength={1}
-              className="intro-drizzle"
+              className="intro-ray"
               stroke="#fbf3e7"
-              strokeWidth={i ? 7 : 10}
+              strokeWidth={i % 2 ? 1.6 : 2.4}
               strokeLinecap="round"
-              strokeLinejoin="round"
               strokeDasharray="1"
               strokeDashoffset="1"
             />
+          ))}
+          {SPARKS.map(([x, y, size]) => (
+            <g key={`${x}${y}`} transform={`translate(${x} ${y}) scale(${size / 10})`}>
+              <path className="intro-spark" d={SPARK} fill="#ffc94a" style={{ transform: "scale(0)" }} />
+            </g>
           ))}
         </svg>
       </div>
